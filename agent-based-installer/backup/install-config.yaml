@@ -1,0 +1,48 @@
+apiVersion: v1
+baseDomain: ocp4.kimmlingen.org
+compute:
+- architecture: amd64
+  hyperthreading: Enabled
+  name: worker
+  replicas: 0
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+metadata:
+  name: cluster-wmarx
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineNetwork:
+  - cidr: 192.168.0.0/24
+  networkType: OVNKubernetes
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  baremetal:
+    hosts:
+      - name: wmarx-vm1
+        role: master
+        bootMACAddress: 52:54:00:e7:05:72
+      - name: wmarx-vm2
+        role: master
+        bootMACAddress: 52:54:00:95:fd:f3
+      - name: wmarx-vm3
+        role: master
+        bootMACAddress: 52:54:00:e8:b9:18
+    apiVIP: "192.168.0.125"
+    ingressVIP: "192.168.0.126"
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCb0CkSSLwJh+XrZsiDE4vghe1cib6fwj7o4GEnJ1KUgmbqFr/G6f+S+kEr1lmUUOIvAnVv2CY/zdARji8QaoM6YFmO2yfU2/2TgP8HAArpTACpI/LHUMWaXGGLdXOV1jNk1w862j7ugq4mnEF2iWHH11wi5AhwxWV3hbLyTjp9Djip5m9scxblUpElFebAV7Pr5+NffPgYdcRoUow/cEOsv0918JlDjfpuXA5VKb2U39Et4duVoUTXQnxkkLWcuDFOVh/HDodCqwv1QHEy2Fg7DDkcjkATT18g0ExBaorX7xY66mITR3BuAkGMHfNmgbGSP7u45vYZ5XX4VfprUYgogKLbU+1H1wgNPLEVHvWo5eGXfxjXyZ6iCsHWyE/8yf5NgrB2hQnC39G8u1djFPYXScMtrUok7zsOv7/59ezDtr7LpdCF/3igFsiSo+/GXykGC4H3HVJL0S+FghKDOa3uS4Q05awcNFNUnW3m8UDAoCfZJUm9RSn9TMmrJloQiMc='
+pullSecret: |
+  {"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K3JobnN1cHBvcnR3bWFyeDFtampmc3N5NmJ1ZnQ0ZW5jbjR3Z253d3RnYzpBSTM2U1oxMUU1MlJUSEpMQUpERFlVVkk4UldJV1lBV1pYNEVIMjdGQTZJNjgzMUlKMDVQRENGWkgwRTFLNE9G","email":"wmarx@redhat.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K3JobnN1cHBvcnR3bWFyeDFtampmc3N5NmJ1ZnQ0ZW5jbjR3Z253d3RnYzpBSTM2U1oxMUU1MlJUSEpMQUpERFlVVkk4UldJV1lBV1pYNEVIMjdGQTZJNjgzMUlKMDVQRENGWkgwRTFLNE9G","email":"wmarx@redhat.com"},"registry.connect.redhat.com":{"auth":"NTI1MzU0MTB8dWhjLTFNSmpGc1NZNkJ1ZlQ0ZW5DbjR3R053d1RHYzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSXpaR1UyTldJek9XSmxORE0wTnpnellXWTBZbVk0TXpOaE1EaGtNakZoTkNKOS5qNGlzbGdXa0tkdTc4bHBqdjRqT3IxNlNKQXdEbzZ4TE01RzlXbXJwNHZwSmhRZjJyNkhYY283N2RpaGd2QmlkQmIwdEpQbmpqLU1HN2k3QzVjWkREdEs4RGtGZ2JicmR3RTN5UEtxY3o3VkVWNkMtMTk2X2lkb1FiT2RUN09BNGNyZG4xbzBUT0lSYklxYmh1bXJnWVJoY0RJZktLVHJWTF9yYUtxTjNkLUR1SHlqTnFhYXY1SXV0VnFkVEQ4UmxwcGNOXzQzaUVqUHd4NWhFc2VwV1dkeUtmbW96Tkh6ZGxiZFhMWmZQam10NTlzX0xvemwzWHJZdm00czU4UTZsbjV6WXQyTXdyWnF0dGdjMGNiTGgwclhDT1dMLVctNWdrUDBtU2h4UHlGenoyajFmdjVkeUlMX1JmYVFScUNHVVhodzJQY2RJaUN4Tmx3Uno1c0xXVXQ5M2RmYjVQN0RyRTZ4ZFVkZlR0aFFSLU91emJ2SXlwY014R3pjRzdHNEFYUFlVUlpZTDNxZ1hOMTRhbEVoQ0h3MEtFR0J3b3FSMTRaWHdKS2I5bExFdVJNd0FXdktnT3pFb0pRV2Q5VU1zb1pVbVJ5VlU5c3ZlcUVrenczNzgzY3pCN0ZCZ2hMNE1WN0owVWxXZGRRbEx2QTU2dkRaSlM4cHFmbkh2RTZWUDhiM1YzZUM5SkxnZkZHdG9jZGs2dWlZeVlyR21QN0tMWV9fWExJNlJzdU11NUV1NFhKR2U3VGFzeVJFZUZEMUxpSE1tRFZQZ2xFZi1mMnpHOWRKd2NrektaNU5tWVNYRjFzdVl4OWU1THlVekVwTzV5RTlxVnRnU1hBS1MwV1NiU00xREhFX01KcnIyRElpMHlPeUlLLVdOd1VXM1ZsOTNSMmhMWkc2WW9Rdw==","email":"wmarx@redhat.com"},"registry.redhat.io":{"auth":"NTI1MzU0MTB8dWhjLTFNSmpGc1NZNkJ1ZlQ0ZW5DbjR3R053d1RHYzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSXpaR1UyTldJek9XSmxORE0wTnpnellXWTBZbVk0TXpOaE1EaGtNakZoTkNKOS5qNGlzbGdXa0tkdTc4bHBqdjRqT3IxNlNKQXdEbzZ4TE01RzlXbXJwNHZwSmhRZjJyNkhYY283N2RpaGd2QmlkQmIwdEpQbmpqLU1HN2k3QzVjWkREdEs4RGtGZ2JicmR3RTN5UEtxY3o3VkVWNkMtMTk2X2lkb1FiT2RUN09BNGNyZG4xbzBUT0lSYklxYmh1bXJnWVJoY0RJZktLVHJWTF9yYUtxTjNkLUR1SHlqTnFhYXY1SXV0VnFkVEQ4UmxwcGNOXzQzaUVqUHd4NWhFc2VwV1dkeUtmbW96Tkh6ZGxiZFhMWmZQam10NTlzX0xvemwzWHJZdm00czU4UTZsbjV6WXQyTXdyWnF0dGdjMGNiTGgwclhDT1dMLVctNWdrUDBtU2h4UHlGenoyajFmdjVkeUlMX1JmYVFScUNHVVhodzJQY2RJaUN4Tmx3Uno1c0xXVXQ5M2RmYjVQN0RyRTZ4ZFVkZlR0aFFSLU91emJ2SXlwY014R3pjRzdHNEFYUFlVUlpZTDNxZ1hOMTRhbEVoQ0h3MEtFR0J3b3FSMTRaWHdKS2I5bExFdVJNd0FXdktnT3pFb0pRV2Q5VU1zb1pVbVJ5VlU5c3ZlcUVrenczNzgzY3pCN0ZCZ2hMNE1WN0owVWxXZGRRbEx2QTU2dkRaSlM4cHFmbkh2RTZWUDhiM1YzZUM5SkxnZkZHdG9jZGs2dWlZeVlyR21QN0tMWV9fWExJNlJzdU11NUV1NFhKR2U3VGFzeVJFZUZEMUxpSE1tRFZQZ2xFZi1mMnpHOWRKd2NrektaNU5tWVNYRjFzdVl4OWU1THlVekVwTzV5RTlxVnRnU1hBS1MwV1NiU00xREhFX01KcnIyRElpMHlPeUlLLVdOd1VXM1ZsOTNSMmhMWkc2WW9Rdw==","email":"wmarx@redhat.com"}}}
+  
+#imageDigestSources:
+#- mirrors:
+#  - quay.io/wmarx/ocp4
+#  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+#- mirrors:
+#  - quay.io/openshift-release-dev/ocp-release
+#  source: quay.io/wmarx/ocp4
