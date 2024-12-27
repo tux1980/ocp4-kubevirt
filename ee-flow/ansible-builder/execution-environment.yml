@@ -1,0 +1,18 @@
+---
+version: 3
+
+dependencies:
+  galaxy: requirements.yml
+  python: requirements.txt
+  system: bindep.txt
+
+additional_build_files:
+   - src: openshift-clients-4.12.0-202410181935.p0.gd691257.assembly.stream.el9.x86_64.rpm
+     dest: rpms
+
+additional_build_steps:
+  prepend_base:
+    - COPY _build/rpms/*.rpm /tmp/openshift-clients.rpm
+    - RUN $PKGMGR install bash-completion
+    - RUN rpm -ivh /tmp/openshift-clients.rpm
+
