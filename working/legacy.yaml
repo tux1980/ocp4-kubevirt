@@ -1,0 +1,92 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: legacy-vm0
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: legacy-vm0-root-dv
+      spec:
+        source:
+          registry:
+            url: 'docker://quay.io/openshift-cnv/containerdisks:windowsxp'
+            secretRef: openshift-cnv-containerdisks-auth
+        storage:
+          resources:
+            requests:
+              storage: 10Gi
+  runStrategy: Always
+  instancetype:
+    name: u1.micro
+  template:
+    metadata:
+      annotations:
+        # https://issues.redhat.com/browse/CNV-46822
+        # oc annotate --overwrite -n openshift-cnv hco kubevirt-hyperconverged kubevirt.kubevirt.io/jsonpatch='[{"op": "add", "path": "/spec/configuration/developerConfiguration/featureGates/-", "value": "Sidecar" }]'
+        hooks.kubevirt.io/hookSidecars: >
+          [{
+            "args": ["--version", "v1alpha3"],
+            "configMap": {"name": "pcihole64", "key": "pcihole64.py", "hookPath": "/usr/bin/onDefineDomain"}
+          }]
+    spec:
+      domain:
+        devices:
+          interfaces:
+          - name: default
+            masquerade: {}
+            model: rtl8139
+        resources: {}
+      networks:
+      - name: default
+        pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - dataVolume:
+            name: legacy-vm0-root-dv
+          name: rootdisk
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pcihole64
+data:
+  pcihole64.py: |
+    #!/usr/bin/env python3
+    """
+    This module can be used as an onDefineDomain sidecar hook in KubeVirt to
+    ensure compatibility with Windows XP when using the q35 machine type.
+    """
+
+    import xml.etree.ElementTree as ET
+    import sys
+
+
+    def main(domain: str):
+        """
+        This function parses the domain XML passed in the domain argument, adds a
+        pcihole64 element with value 0 to every pcie-root controller and then
+        prints the modified XML to stdout.
+        """
+
+        xml = ET.ElementTree(ET.fromstring(domain))
+
+        controllers = xml.findall("./devices/controller[@model='pcie-root']")
+        for controller in controllers:
+            element = ET.Element("pcihole64", {"unit": "KiB"})
+            element.text = "0"
+            controller.insert(0, element)
+
+        ET.indent(xml)
+        xml.write(sys.stdout, encoding="unicode")
+
+
+    if __name__ == "__main__":
+        main(sys.argv[4])
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openshift-cnv-containerdisks-auth
+data:
+  accessKeyId: "b3BlbnNoaWZ0LWNuditjb250YWluZXJfZGlza19yZWFk"  # <optional: your key or user name, base64 encoded>
+  secretKey: "UFJVUURBRUlJTEJZTDJaNVBMU0tWNkVFQTYxRUdBOUlDUE5SR0Y3WlpGMkdaME1ZQkVaVFM5TzBMSExDRlpHMQ==" # <optional: your secret or password, base64 encoded>

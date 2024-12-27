@@ -1,0 +1,108 @@
+#Windows Server 2025
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win2k25
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:Win2025_English_x64'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+
+
+#Windows Server 2022
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win2k22
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:Win2022_English_x64'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+
+
+#Windows Server 2019
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win2k19
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:windows2k19-cnv2-no-oobe'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+
+
+#Windows 10
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win10
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:windows10'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+
+
+#Windows 11
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win11
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:windows11'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openshift-cnv-containerdisks-auth
+  namespace: openshift-virtualization-os-images
+data:
+  accessKeyId: "b3BlbnNoaWZ0LWNuditjb250YWluZXJfZGlza19yZWFk"
+  secretKey: "UFJVUURBRUlJTEJZTDJaNVBMU0tWNkVFQTYxRUdBOUlDUE5SR0Y3WlpGMkdaME1ZQkVaVFM5TzBMSExDRlpHMQ=="

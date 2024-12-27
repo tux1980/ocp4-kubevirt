@@ -1,0 +1,229 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  annotations:
+    name.os.template.kubevirt.io/win10: Microsoft Windows 10
+    vm.kubevirt.io/validations: |
+      [
+        {
+          "name": "minimal-required-memory",
+          "path": "jsonpath::.spec.domain.resources.requests.memory",
+          "rule": "integer",
+          "message": "This VM requires more memory.",
+          "min": 2147483648
+        }, {
+          "name": "windows-virtio-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "virto disk bus type has better performance, install virtio drivers in VM and change bus type",
+          "values": ["virtio"],
+          "justWarning": true
+        }, {
+          "name": "windows-disk-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].disk.bus",
+          "rule": "enum",
+          "message": "disk bus has to be either virtio or sata or scsi",
+          "values": ["virtio", "sata", "scsi"]
+        }, {
+          "name": "windows-cd-bus",
+          "path": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "valid": "jsonpath::.spec.domain.devices.disks[*].cdrom.bus",
+          "rule": "enum",
+          "message": "cd bus has to be sata",
+          "values": ["sata"]
+        }
+      ]
+  name: win10-vm0
+  labels:
+    app: win10-vm0
+    flavor.template.kubevirt.io/medium: 'true'
+    os.template.kubevirt.io/win10: 'true'
+    vm.kubevirt.io/template: windows10-desktop-medium
+    vm.kubevirt.io/template.namespace: openshift
+    workload.template.kubevirt.io/desktop: 'true'
+spec:
+  runStrategy: Always
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-vm0-root-dv
+      spec:
+        source:
+          registry:
+            url: 'docker://quay.io/openshift-cnv/containerdisks:windows10-bios'
+            secretRef: openshift-cnv-containerdisks-auth
+        storage:
+          resources:
+            requests:
+              storage: 64Gi
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: medium
+        vm.kubevirt.io/os: windows10
+        vm.kubevirt.io/workload: desktop
+      labels:
+        flavor.template.kubevirt.io/medium: 'true'
+        kubevirt.io/domain: win10-vm0
+        kubevirt.io/size: medium
+        os.template.kubevirt.io/win10: 'true'
+        vm.kubevirt.io/name: win10-vm0
+        workload.template.kubevirt.io/desktop: 'true'
+    spec:
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 2
+        devices:
+          disks:
+            - cdrom:
+                bus: sata
+              name: win10-iso
+              shareable: true
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: win10-vm0-root-v
+            - cdrom:
+                bus: sata
+              name: sysprep
+            - cdrom:
+                bus: sata
+              name: windows-guest-tools
+          inputs:
+            - bus: usb
+              name: tablet
+              type: tablet
+          interfaces:
+            - masquerade: {}
+              model: virtio
+              name: default
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            # workaround for https://bugzilla.redhat.com/2139896
+            # reenlightenment: {}
+            ipi: {}
+            synic: {}
+            synictimer:
+              direct: {}
+            spinlocks:
+              spinlocks: 8191
+            reset: {}
+            relaxed: {}
+            vpindex: {}
+            runtime: {}
+            tlbflush: {}
+            frequencies: {}
+            vapic: {}
+        resources:
+          requests:
+            memory: 4Gi
+      evictionStrategy: LiveMigrate
+      hostname: win10-vm0
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - dataVolume:
+            name: win10-vm0-root-dv
+          name: win10-vm0-root-v
+        - dataVolume:
+            name: win10-iso
+          name: win10-iso
+        - name: sysprep
+          sysprep:
+            configMap:
+              name: windows-unattend
+        - containerDisk:
+            image: registry.redhat.io/container-native-virtualization/virtio-win
+          name: windows-guest-tools
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: windows-unattend
+data:
+  Autounattend.xml: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- responsible for installing windows, ignored on sysprepped images -->
+  Unattend.xml: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <unattend xmlns="urn:schemas-microsoft-com:unattend">
+      <settings pass="specialize">
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+          <ExtendOSPartition>
+            <Extend>true</Extend>
+          </ExtendOSPartition>
+        </component>
+      </settings>
+      <settings pass="oobeSystem">
+        <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+          <OOBE>
+            <HideEULAPage>true</HideEULAPage>
+            <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+            <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+            <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+            <NetworkLocation>Work</NetworkLocation>
+            <SkipUserOOBE>true</SkipUserOOBE>
+            <SkipMachineOOBE>true</SkipMachineOOBE>
+            <ProtectYourPC>3</ProtectYourPC>
+          </OOBE>
+          <AutoLogon>
+            <Password>
+            <Value>123456</Value>
+              <PlainText>true</PlainText>
+            </Password>
+            <Enabled>true</Enabled>
+        <Username>Administrator</Username>
+    </AutoLogon>
+    <UserAccounts>
+         <AdministratorPassword>
+                <Value>123456</Value>
+                <PlainText>true</PlainText>
+        </AdministratorPassword>
+          </UserAccounts>
+          <RegisteredOrganization/>
+          <RegisteredOwner/>
+          <TimeZone>Eastern Standard Time</TimeZone>
+        </component>
+      </settings>
+    </unattend>
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openshift-cnv-containerdisks-auth
+data:
+  accessKeyId: "b3BlbnNoaWZ0LWNuditjb250YWluZXJfZGlza19yZWFk"  # <optional: your key or user name, base64 encoded>
+  secretKey: "UFJVUURBRUlJTEJZTDJaNVBMU0tWNkVFQTYxRUdBOUlDUE5SR0Y3WlpGMkdaME1ZQkVaVFM5TzBMSExDRlpHMQ==" # <optional: your secret or password, base64 encoded>
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win10-iso
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:Win10_21H2_English_x64'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 6Gi
+metadata:
+  name:  win10-iso

@@ -1,0 +1,71 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataSource
+metadata:
+  name: win10
+  namespace: openshift-virtualization-os-images
+  labels:
+    instancetype.kubevirt.io/default-instancetype: u1.large
+    instancetype.kubevirt.io/default-preference: windows.10.virtio
+spec:
+  source:
+    pvc:
+      name: win10
+      namespace: openshift-virtualization-os-images
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win10
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:windows10-efi'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataSource
+metadata:
+  name: win11
+  namespace: openshift-virtualization-os-images
+  labels:
+    instancetype.kubevirt.io/default-instancetype: u1.large
+    instancetype.kubevirt.io/default-preference: windows.11.virtio
+spec:
+  source:
+    pvc:
+      name: win11
+      namespace: openshift-virtualization-os-images
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: win11
+  namespace: openshift-virtualization-os-images
+  annotations:
+    cdi.kubevirt.io/storage.bind.immediate.requested: 'true'
+spec:
+  source:
+    registry:
+      url: 'docker://quay.io/openshift-cnv/containerdisks:windows11'
+      secretRef: openshift-cnv-containerdisks-auth
+  storage:
+    resources:
+      requests:
+        storage: 64Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openshift-cnv-containerdisks-auth
+  namespace: openshift-virtualization-os-images
+data:
+  accessKeyId: "b3BlbnNoaWZ0LWNuditjb250YWluZXJfZGlza19yZWFk"  # <optional: your key or user name, base64 encoded>
+  secretKey: "UFJVUURBRUlJTEJZTDJaNVBMU0tWNkVFQTYxRUdBOUlDUE5SR0Y3WlpGMkdaME1ZQkVaVFM5TzBMSExDRlpHMQ==" # <optional: your secret or password, base64 encoded>
+

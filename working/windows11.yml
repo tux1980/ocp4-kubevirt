@@ -1,0 +1,88 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: windows-11-virtio-vm0
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: windows-11-virtio-vm0-volume
+      spec:
+        source:
+          pvc:
+            name: win11
+            namespace: openshift-virtualization-os-images
+        storage:
+          resources: {}
+  instancetype:
+    name: u1.large
+  preference:
+    name: windows.11.virtio
+  runStrategy: Always
+  template:
+    spec:
+      domain:
+        devices:
+          disks:
+            - cdrom:
+                bus: sata
+              name: sysprep
+      volumes:
+        - dataVolume:
+            name: windows-11-virtio-vm0-volume
+          name: rootdisk
+        - name: sysprep
+          sysprep:
+            configMap:
+              name: windows-unattend
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: windows-unattend
+data:
+  Autounattend.xml: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- responsible for installing windows, ignored on sysprepped images -->
+  Unattend.xml: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <unattend xmlns="urn:schemas-microsoft-com:unattend">
+      <settings pass="specialize">
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+          <ExtendOSPartition>
+            <Extend>true</Extend>
+          </ExtendOSPartition>
+        </component>
+      </settings>
+      <settings pass="oobeSystem">
+        <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+          <OOBE>
+            <HideEULAPage>true</HideEULAPage>
+            <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+            <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+            <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+            <NetworkLocation>Work</NetworkLocation>
+            <SkipUserOOBE>true</SkipUserOOBE>
+            <SkipMachineOOBE>true</SkipMachineOOBE>
+            <ProtectYourPC>3</ProtectYourPC>
+          </OOBE>
+          <AutoLogon>
+            <Password>
+            <Value>123456</Value>
+              <PlainText>true</PlainText>
+            </Password>
+            <Enabled>true</Enabled>
+        <Username>Administrator</Username>
+    </AutoLogon>
+    <UserAccounts>
+         <AdministratorPassword>
+                <Value>123456</Value>
+                <PlainText>true</PlainText>
+        </AdministratorPassword>
+          </UserAccounts>
+          <RegisteredOrganization/>
+          <RegisteredOwner/>
+          <TimeZone>Eastern Standard Time</TimeZone>
+        </component>
+      </settings>
+    </unattend>
+
